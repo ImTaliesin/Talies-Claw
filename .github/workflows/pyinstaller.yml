@@ -1,0 +1,82 @@
+name: Build-PyInstaller
+on:
+  workflow_call:
+    inputs:
+      os:
+        required: false
+        type: string
+        default: windows-latest
+      python-version:
+        required: false
+        type: string
+        default: 3.x
+      file:
+        required: true
+        type: string
+      icon:
+        required: true
+        type: string
+      output:
+        required: true
+        type: string
+      attest:
+        required: false
+        type: boolean
+        default: false
+      release:
+        required: false
+        type: boolean
+        default: false
+      latest:
+        required: false
+        type: boolean
+        default: false
+jobs:
+  build:
+    name: PyInstaller
+    runs-on: ${{ inputs.os }}
+    permissions:
+      id-token: write
+      contents: write
+      attestations: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+          architecture: x64
+          cache: pip
+      - name: Install Dependencies
+        shell: bash
+        run: pip install pyinstaller
+      - name: Package Application
+        shell: bash
+        run: pyinstaller --onefile ${{ inputs.file }} --icon ${{ inputs.icon }}
+      - name: Attest
+        uses: actions/attest-build-provenance@v2
+        if: ${{ inputs.attest }}
+        with:
+          subject-path: ${{ github.workspace }}/dist
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: exe
+          path: ${{ inputs.output }}
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: ${{ inputs.release && !inputs.latest }}
+        with:
+          files: ${{ inputs.output }}
+      - id: vars
+        if: ${{ inputs.release && inputs.latest }}
+        shell: bash
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: ${{ inputs.release && inputs.latest }}
+        with:
+          body: This is the latest build. Built from commit ${{ steps.vars.outputs.sha_short }}
+          files: ${{ inputs.output }}
+          tag_name: latest

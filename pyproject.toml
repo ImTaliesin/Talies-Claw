@@ -1,0 +1,27 @@
+# pyproject.toml
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools_scm>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Talie's Star Citizen Kill Tracker"
+authors = [
+    {name = "ImTaliesin", email = "imtaliesin@esotericdevs.com"},
+]
+description = "Star Citizen Game Log Reader"
+requires-python = ">=3.10"
+dependencies = [
+    "typing_extensions; python_version < '3.11'",
+]
+dynamic = ["version"]
+
+[tool.setuptools]
+packages = ["allslain"]
+
+[tool.black]
+target-version = ['py310', 'py311', 'py312']
+
+[tool.pyinstaller]
+console = true
+onefile = true
+name = "SC_Kill_Tracker"

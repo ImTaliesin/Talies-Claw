@@ -1,0 +1,18 @@
+name: Release
+on:
+  release:
+    types: [released]
+jobs:
+  build:
+    name: Build and release
+    permissions:
+      attestations: write
+      contents: write
+      id-token: write
+    uses: ./.github/workflows/pyinstaller.yml
+    with:
+      file: main.py
+      icon: icon/ded.ico
+      output: dist/SC_Kill_Tracker.exe
+      attest: true
+      release: true
